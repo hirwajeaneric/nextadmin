@@ -4,8 +4,13 @@ import Search from '@/app/ui/dashboard/search/Search';
 import Link from 'next/link';
 import Image from 'next/image';
 import Pagination from '@/app/ui/dashboard/pagination/Pagination';
+import { deleteUser } from '@/app/lib/actions';
+import { fetchUsers } from '@/app/lib/data';
 
-export default function UsersPage() {
+export default async function UsersPage({ searchParams }) {
+  const q = searchParams?.q || "";
+  const users = await fetchUsers(q);
+  
   return (
     <div className={styles.container}>
       <div className={styles.top}>
@@ -26,26 +31,30 @@ export default function UsersPage() {
           </tr>
         </thead>
         <tbody>
-          <tr>
+          {users.map((user) => (
+            <tr key={user._id}>
             <td>
               <div className={styles.user}>
-                <Image src="/noavatar.png" width={40} height={40} alt="" className={styles.userImage} />
-                John Doe
+                <Image src={user.img || "/noavatar.png"} width={40} height={40} alt="" className={styles.userImage} />
+                {user.username}
               </div>
             </td>
-            <td>john@gmail.com</td>
-            <td>13.01.2024</td>
-            <td>Admin</td>
-            <td>Active</td>
+            <td>{user.email}</td>
+            <td>{user.createdAt?.toString().slice(4, 16)}</td>
+            <td>{user.isAdmin ? "Admin" : "Client"}</td>
+            <td>{user.isActive ? "Active" : "Inactive"}</td>
             <td>
               <div className={styles.buttons}>
-                <Link href="/dashboard/users/1">
+                <Link href={`/dashboard/users/${user._id}`}>
                   <button className={`${styles.button} ${styles.view}`}>View</button>
                 </Link>
-                <button className={`${styles.button} ${styles.delete}`}>Delete</button>
+                <form action={deleteUser}>
+                    <input type="text" hidden name="id" value={user._id} />
+                    <button className={`${styles.button} ${styles.delete}`}>Delete</button>
+                  </form>
               </div>
             </td>
-          </tr>
+          </tr>))}
         </tbody>
       </table>
       <Pagination />

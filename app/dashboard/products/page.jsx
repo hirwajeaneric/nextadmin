@@ -3,8 +3,11 @@ import Link from "next/link";
 import Search from "@/app/ui/dashboard/search/Search";
 import Pagination from "@/app/ui/dashboard/pagination/Pagination";
 import styles from "@/app/ui/dashboard/products/products.module.css";
+import { deleteProduct } from "@/app/lib/actions";
+import { fetchProducts } from "@/app/lib/data";
 
-export default function Products() {
+export default async function Products() {
+  const products = await fetchProducts();
   return (
     <div className={styles.container}>
       <div className={styles.top}>
@@ -25,26 +28,30 @@ export default function Products() {
           </tr>
         </thead>
         <tbody>
-          <tr>
-            <td>
-              <div className={styles.product}>
-                <Image src="/noproduct.jpg" width={40} height={40} alt="" className={styles.userImage} />
-                IPhone
-              </div>
-            </td>
-            <td>Lorem ipsum dolor sit amet consectetur adipisicing elit. Sunt, perspiciatis vitae et distinctio aut optio tempore molestias corporis repellendus magni veritatis! Nemo quidem eos officia commodi, voluptas eligendi! Beatae, animi.</td>
-            <td>$999</td>
-            <td>13.01.2022</td>
-            <td>72</td>
-            <td>
-              <div className={styles.buttons}>
-                <Link href="/dashboard/users/1">
-                  <button className={`${styles.button} ${styles.view}`}>View</button>
-                </Link>
-                <button className={`${styles.button} ${styles.delete}`}>Delete</button>
-              </div>
-            </td>
-          </tr>
+          {products.map((product) => (
+            <tr key={product._id}>
+              <td>
+                <div className={styles.product}>
+                  <Image src={product.img || "/noproduct.jpg"} width={40} height={40} alt="" className={styles.userImage} />
+                  {product.title}
+                </div>
+              </td>
+              <td>{product.desc}</td>
+              <td>{product.price}</td>
+              <td>{product.createdAt?.toString().slice(4,16)}</td>
+              <td>{product.stock}</td>
+              <td>
+                <div className={styles.buttons}>
+                  <Link href={`/dashboard/products/${product._id}`}>
+                    <button className={`${styles.button} ${styles.view}`}>View</button>
+                  </Link>
+                  <form action={deleteProduct}>
+                    <input type="text" hidden name="id" value={product._id} />
+                    <button className={`${styles.button} ${styles.delete}`}>Delete</button>
+                  </form>
+                </div>
+              </td>
+            </tr>))}
         </tbody>
       </table>
       <Pagination />
